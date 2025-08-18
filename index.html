@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitCraft - Biblioteca de Exercícios</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #000;
+            border-bottom: 1px solid #333;
+            padding: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header .logo-section {
+            display: flex;
+            align-items: center;
+        }
+        header .logo-section img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            border-radius: 8px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #4CAF50; /* Verde */
+        }
+        header p {
+            margin: 0;
+            color: #888;
+        }
+        .search-filter-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .search-filter-section input[type="text"],
+        .search-filter-section select {
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #222;
+            color: #fff;
+            flex: 1;
+        }
+        .search-filter-section button {
+            padding: 10px 15px;
+            background-color: #4CAF50; /* Verde */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .search-filter-section button:hover {
+            background-color: #45a049;
+        }
+        .gif-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .gif-card {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            padding: 15px;
+            transition: transform 0.2s ease;
+        }
+        .gif-card:hover {
+            transform: translateY(-5px);
+        }
+        .gif-card img {
+            max-width: 100%;
+            height: 150px;
+            object-fit: contain;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .gif-card h3 {
+            font-size: 1.1em;
+            margin: 0 0 5px 0;
+            color: #fff;
+        }
+        .gif-card .category-badge {
+            background-color: #4CAF50; /* Verde */
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+        }
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 50px;
+            border-top: 1px solid #333;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <img src="public/logo.jpeg" alt="FitCraft Logo">
+                <div>
+                    <h1>FitCraft</h1>
+                    <p>Biblioteca de Exercícios</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-filter-section">
+            <input type="text" id="searchInput" placeholder="Buscar exercícios...">
+            <select id="categorySelect">
+                <option value="Todas">Todas</option>
+            </select>
+            <button onclick="filterGifs()">Buscar</button>
+        </div>
+
+        <p id="gifCount"></p>
+
+        <div class="gif-grid" id="gifGrid"></div>
+
+        <footer>
+            <p>&copy; 2025 FitCraft - Biblioteca de Exercícios para Criação de Fichas</p>
+        </footer>
+    </div>
+
+    <script>
+        let allGifs = [];
+
+        async function loadGifs() {
+            try {
+                const response = await fetch("public/gif_index.json");
+                allGifs = await response.json();
+                populateCategories();
+                filterGifs(); // Initial display
+            } catch (error) {
+                console.error("Erro ao carregar GIFs:", error);
+                document.getElementById("gifGrid").innerHTML = "<p>Erro ao carregar exercícios.</p>";
+            }
+        }
+
+        function populateCategories() {
+            const categorySelect = document.getElementById("categorySelect");
+            const categories = new Set();
+            allGifs.forEach(gif => categories.add(gif.category));
+            
+            categories.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        function filterGifs() {
+            const searchInput = document.getElementById("searchInput").value.toLowerCase();
+            const selectedCategory = document.getElementById("categorySelect").value;
+            const gifGrid = document.getElementById("gifGrid");
+            gifGrid.innerHTML = ''; // Clear current GIFs
+
+            const filtered = allGifs.filter(gif => {
+                const matchesSearch = gif.name.toLowerCase().includes(searchInput) || 
+                                      gif.category.toLowerCase().includes(searchInput);
+                const matchesCategory = (selectedCategory === "Todas" || gif.category === selectedCategory);
+                return matchesSearch && matchesCategory;
+            });
+
+            document.getElementById("gifCount").textContent = `${filtered.length} exercício(s) encontrado(s)`;
+
+            if (filtered.length > 0) {
+                filtered.forEach(gif => {
+                    const gifCard = document.createElement("div");
+                    gifCard.className = "gif-card";
+                    gifCard.innerHTML = `
+                        <img src="${gif.path}" alt="${gif.name}" onerror="this.onerror=null;this.src=\'https://via.placeholder.com/150?text=Erro\';">
+                        <h3>${gif.name}</h3>
+                        <span class="category-badge">${gif.category}</span>
+                    `;
+                    gifGrid.appendChild(gifCard);
+                });
+            } else {
+                gifGrid.innerHTML = "<p>Nenhum exercício encontrado. Tente ajustar sua busca ou filtros.</p>";
+            }
+        }
+
+        // Event Listeners for dynamic filtering
+        document.getElementById("searchInput").addEventListener("keyup", filterGifs);
+        document.getElementById("categorySelect").addEventListener("change", filterGifs);
+
+        loadGifs();
+    </script>
+</body>
+</html>
+
+
