@@ -119,7 +119,7 @@
     <div class="container">
         <header>
             <div class="logo-section">
-                <img src="public/logo.jpeg" alt="FitCraft Logo">
+                <img src="logo.jpeg" alt="FitCraft Logo">
                 <div>
                     <h1>FitCraft</h1>
                     <p>Biblioteca de Exercícios</p>
@@ -149,7 +149,7 @@
 
         async function loadGifs() {
             try {
-                const response = await fetch("public/gif_index.json");
+                const response = await fetch("gif_index.json");
                 allGifs = await response.json();
                 populateCategories();
                 filterGifs(); // Initial display
